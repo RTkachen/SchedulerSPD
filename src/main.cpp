@@ -2,16 +2,14 @@
 #include "Problem.hpp"
 
 // Funkcja pomocnicza do mierzenia czasu działania
-void measureExecutionTime(const std::string& label, const std::function<void()>& func) {
+void measureExecutionTime(Problem& problem, const std::function<void()>& func) {
     auto start = std::chrono::high_resolution_clock::now();
-    
-    func(); // Wykonanie przekazanej funkcji
+    func();
+    auto end   = std::chrono::high_resolution_clock::now();
 
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration = end - start;
-    
-    std::cout << "Czas wykonania (" << label << "): "
-              << std::fixed << std::setprecision(7) << duration.count() << " s" << std::endl;
+    auto us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    std::cout << "="<< us << "*0,000001"<< '\n' ;
+    std::cout << problem.maxSum() << '\n';
 }
 
 int main(int argc, char* argv[]) {
@@ -29,11 +27,13 @@ int main(int argc, char* argv[]) {
 
     Problem problem(zadanie.getInstantion(), zadanie.getN(), zadanie.getM());
 
-    problem.lsa();
-    problem.display();
-    problem.lpt();
-    problem.display();
-    
-
+     // kolejne algorytmy, każdy czyści maszyny przed startem
+     measureExecutionTime(problem, [&]{ problem.clearMachines(); problem.lsa();        });
+     measureExecutionTime(problem, [&]{ problem.clearMachines(); problem.lpt();        });
+     measureExecutionTime(problem, [&]{ problem.clearMachines(); problem.bruteSearch(); });
+     measureExecutionTime(problem, [&]{ problem.clearMachines(); problem.dynamicSearch(); });
+     measureExecutionTime(problem, [&]{ problem.clearMachines(); problem.ptas(0.05);    });
+     measureExecutionTime(problem, [&]{ problem.clearMachines(); problem.fptas(0.05);  });
+ 
     return 0;
 }
